@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camp Map & Directory</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .header-title-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        .lang-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 700;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .lang-btn:hover { background: rgba(255, 255, 255, 0.2); }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <div class="header-row" style="margin-bottom: 20px;">
+            <div class="header-title-group">
+                <h1 id="ui-title">Camp Map & Directory</h1>
+                <button class="lang-btn" onclick="toggleLanguage()">
+                    🌐 <span id="lang-text">हिंदी</span>
+                </button>
+            </div>
+            
+            <div class="stats-panel">
+                <div class="stat-item">
+                    <span class="stat-label" id="ui-stat-total">Total Depts</span>
+                    <span class="stat-value" id="stat-total">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label" id="ui-stat-filtered">Filtered</span>
+                    <span class="stat-value" id="stat-filtered">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label" id="ui-stat-view">Active View</span>
+                    <span class="stat-value" id="stat-view">All</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="map-section">
+            <div class="map-title" id="ui-map-title">Camp Layout (Live Pin Map)</div>
+            <div class="map-grid">
+                <div class="map-row">
+                    <div class="building-shape color-c">
+                        <span class="building-label">C</span>
+                        <div class="building-box"><div class="pin bg-c" id="pin-c"></div></div>
+                    </div>
+                    <div class="building-shape color-b">
+                        <span class="building-label">B</span>
+                        <div class="building-box"><div class="pin bg-b" id="pin-b"></div></div>
+                    </div>
+                    <div class="building-shape color-a">
+                        <span class="building-label">A</span>
+                        <div class="building-box"><div class="pin bg-a" id="pin-a"></div></div>
+                    </div>
+                </div>
+                <div class="map-row" style="align-items: flex-end;">
+                    <div class="building-shape color-d3">
+                        <div class="tent-box"><div class="pin bg-d3" id="pin-d3"></div></div>
+                        <span class="building-label">03</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="venue-gallery">
+            <h3 id="ui-gallery-title">Venue Guide Photos</h3>
+            <div class="gallery-scroll">
+                <img src="images/photo1.jpg" alt="Venue Photo 1" class="venue-img" onclick="openModal(this.src)" onerror="this.style.display='none'">
+                <img src="images/photo2.jpg" alt="Venue Photo 2" class="venue-img" onclick="openModal(this.src)" onerror="this.style.display='none'">
+            </div>
+        </div>
+
+        <input type="text" id="searchInput" class="search-box" placeholder="Search for a department... (e.g., Eye, Dental)">
+        
+        <div class="filters" id="filterContainer"></div>
+
+        <div class="directory-list" id="directoryList"></div>
+    </div>
+
+    <div id="imageModal" class="modal" onclick="closeModal()">
+        <span class="close-modal">&times;</span>
+        <img class="modal-content" id="fullImage">
+    </div>
+
+    <script src="data.js"></script>
+    
+    <script>
+        let currentLang = 'en'; 
+        let currentCategory = 'All';
+
+        const i18n = {
+            en: {
+                title: "Camp Map & Directory",
+                searchPlaceholder: "Search for a department...",
+                statTotal: "Total Depts",
+                statFiltered: "Filtered",
+                statView: "Active View",
+                mapTitle: "Camp Layout (Live Pin Map)",
+                galleryTitle: "Venue Guide Photos",
+                roomLabel: "Room:",
+                noResults: "No departments found. Try a different search.",
+                btnLang: "हिंदी",
+                categories: {
+                    "All": "All", "Cancer": "Cancer", "Pathology": "Pathology", "TB Chest": "TB Chest", 
+                    "Eye": "Eye", "Dental": "Dental", "Pediatrics": "Child", "Orthopedics": "Bone", 
+                    "Cardiology": "Heart", "Gynecology": "Women", "ENT": "ENT"
+                }
+            },
+            hi: {
+                title: "शिविर निर्देशिका",
+                searchPlaceholder: "विभाग खोजें... (जैसे, नेत्र, दंत)",
+                statTotal: "कुल विभाग",
+                statFiltered: "खोज परिणाम",
+                statView: "सक्रिय श्रेणी",
+                mapTitle: "कैंप लेआउट (लाइव मैप)",
+                galleryTitle: "मार्गदर्शक तस्वीरें",
+                roomLabel: "कक्ष:",
+                noResults: "कोई विभाग नहीं मिला।",
+                btnLang: "English",
+                categories: {
+                    "All": "सभी", "Cancer": "कैंसर", "Pathology": "पैथोलॉजी", "TB Chest": "टीबी/छाती", 
+                    "Eye": "नेत्र", "Dental": "दंत", "Pediatrics": "शिशु", "Orthopedics": "अस्थि", 
+                    "Cardiology": "हृदय", "Gynecology": "महिला", "ENT": "ईएनटी"
+                }
+            }
+        };
+
+        const categoriesList = [
+            { id: 'All', icon: '' }, { id: 'Cancer', icon: '🎗️' }, { id: 'Pathology', icon: '🔬' }, 
+            { id: 'TB Chest', icon: '🫁' }, { id: 'Eye', icon: '👁️' }, { id: 'Dental', icon: '🦷' }, 
+            { id: 'Pediatrics', icon: '👶' }, { id: 'Orthopedics', icon: '🦴' }, { id: 'Cardiology', icon: '🫀' }, 
+            { id: 'Gynecology', icon: '🤰' }, { id: 'ENT', icon: '👂' }
+        ];
+
+        const searchInput = document.getElementById('searchInput');
+        const listContainer = document.getElementById('directoryList');
+        const filterContainer = document.getElementById('filterContainer');
+
+        if (typeof data !== 'undefined') {
+            document.getElementById('stat-total').innerText = data.length;
+        }
+
+        // --- NEW: MODAL FUNCTIONS ---
+        function openModal(imageSrc) {
+            document.getElementById('fullImage').src = imageSrc;
+            document.getElementById('imageModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('imageModal').style.display = 'none';
+        }
+
+        // Allow closing modal by pressing the Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Escape") {
+                closeModal();
+            }
+        });
+        // -----------------------------
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'en' ? 'hi' : 'en';
+            updateStaticUI();
+            renderFilters();
+            renderList();
+        }
+
+        function updateStaticUI() {
+            const dict = i18n[currentLang];
+            document.getElementById('ui-title').innerText = dict.title;
+            document.getElementById('lang-text').innerText = dict.btnLang;
+            document.getElementById('ui-stat-total').innerText = dict.statTotal;
+            document.getElementById('ui-stat-filtered').innerText = dict.statFiltered;
+            document.getElementById('ui-stat-view').innerText = dict.statView;
+            document.getElementById('ui-map-title').innerText = dict.mapTitle;
+            document.getElementById('ui-gallery-title').innerText = dict.galleryTitle;
+            searchInput.placeholder = dict.searchPlaceholder;
+        }
+
+        function renderFilters() {
+            const dict = i18n[currentLang];
+            filterContainer.innerHTML = categoriesList.map(cat => {
+                const isActive = cat.id === currentCategory ? 'active' : '';
+                const displayText = cat.icon ? `${cat.icon} ${dict.categories[cat.id]}` : dict.categories[cat.id];
+                return `<button class="filter-btn ${isActive}" onclick="filterCategory('${cat.id}')">${displayText}</button>`;
+            }).join('');
+        }
+
+        function getLocationClass(block) {
+            if(block.includes('Block - A')) return 'a';
+            if(block.includes('Block - B')) return 'b';
+            if(block.includes('Block - C')) return 'c';
+            if(block.includes('Dome - 03')) return 'd3';
+            return 'tent'; 
+        }
+
+        function updateMapPins(filteredData) {
+            document.querySelectorAll('.pin').forEach(pin => pin.classList.remove('active'));
+            filteredData.forEach(item => {
+                if(item.block.includes('Block - A')) document.getElementById('pin-a').classList.add('active');
+                if(item.block.includes('Block - B')) document.getElementById('pin-b').classList.add('active');
+                if(item.block.includes('Block - C')) document.getElementById('pin-c').classList.add('active');
+                if(item.block.includes('Dome - 03')) document.getElementById('pin-d3').classList.add('active');
+            });
+        }
+
+        function renderList() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const dict = i18n[currentLang];
+            
+            const filteredData = (typeof data !== 'undefined') ? data.filter(item => {
+                const matchesSearch = item.dept.toLowerCase().includes(searchTerm) || 
+                                      item.deptHi.toLowerCase().includes(searchTerm) ||
+                                      item.loc.toLowerCase().includes(searchTerm) ||
+                                      item.locHi.toLowerCase().includes(searchTerm);
+                const matchesCategory = currentCategory === 'All' || item.cat === currentCategory;
+                return matchesSearch && matchesCategory;
+            }) : [];
+
+            document.getElementById('stat-filtered').innerText = filteredData.length;
+            document.getElementById('stat-view').innerText = dict.categories[currentCategory];
+            updateMapPins(filteredData);
+
+            if (filteredData.length === 0) {
+                listContainer.innerHTML = `<div style="text-align:center; padding: 20px; color: #64748b;">${dict.noResults}</div>`;
+                return;
+            }
+
+            listContainer.innerHTML = filteredData.map(item => {
+                const colorCode = getLocationClass(item.block);
+                const displayDept = currentLang === 'en' ? item.dept : item.deptHi;
+                const displayLoc = currentLang === 'en' ? item.loc : item.locHi;
+                const displayBlock = currentLang === 'en' ? item.block : item.block.replace('Block', 'ब्लॉक').replace('Dome', 'डोम');
+                
+                return `
+                    <div class="card color-${colorCode}">
+                        <div class="card-left">
+                            <div class="card-icon">${item.icon}</div>
+                            <div>
+                                <h3 class="card-title">${displayDept}</h3>
+                                <p class="card-subtitle">
+                                    <span class="color-${colorCode}">${displayBlock}</span> 
+                                    <span style="color: #64748b;">• ${displayLoc}</span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="location-badge bg-${colorCode}">${dict.roomLabel} ${item.room}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterCategory(category) {
+            currentCategory = category;
+            renderFilters();
+            renderList();
+        }
+
+        searchInput.addEventListener('input', renderList);
+        
+        window.addEventListener('load', () => {
+            updateStaticUI();
+            renderFilters();
+            renderList();
+        });
+    </script>
+</body>
+</html>
