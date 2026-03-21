@@ -1,0 +1,67 @@
+export interface CampEntry {
+  dept: string;
+  deptHi: string;
+  loc: string;
+  locHi: string;
+  block: string;
+  room: string;
+  icon: string;
+  cat: string;
+  catHi: string;
+}
+
+export const campData: CampEntry[] = [
+  { dept: 'Registration Counter', deptHi: 'पंजीयन काउंटर', loc: 'Tent Area', locHi: 'टेंट क्षेत्र', block: 'Dome - 01', room: '1-40', icon: '📝', cat: 'General', catHi: 'सामान्य' },
+  { dept: 'Medicine Distribution Center', deptHi: 'दवा वितरण केन्द्र', loc: 'Tent Area', locHi: 'टेंट क्षेत्र', block: 'Dome - 02', room: '1-40', icon: '💊', cat: 'General', catHi: 'सामान्य' },
+  { dept: 'NCD Counter', deptHi: 'एनसीडी काउंटर', loc: 'Tent Area', locHi: 'टेंट क्षेत्र', block: 'Dome - 02', room: '1-10', icon: '🩺', cat: 'General', catHi: 'सामान्य' },
+  { dept: 'Medicine', deptHi: 'मेडिसिन', loc: 'Tent Area', locHi: 'टेंट क्षेत्र', block: 'Dome - 03', room: '11-15', icon: '💊', cat: 'General', catHi: 'सामान्य' },
+  { dept: 'Pediatrics Department', deptHi: 'शिशु रोग विभाग', loc: 'Tent Area', locHi: 'टेंट क्षेत्र', block: 'Dome - 03', room: '16-17', icon: '👶', cat: 'Pediatrics', catHi: 'शिशु' },
+  { dept: 'Orthopedics Department', deptHi: 'अस्थि रोग विभाग', loc: 'Tent Area', locHi: 'टेंट क्षेत्र', block: 'Dome - 03', room: '18-20', icon: '🦴', cat: 'Orthopedics', catHi: 'अस्थि' },
+  { dept: 'General Surgery', deptHi: 'जनरल सर्जरी', loc: 'Tent Area', locHi: 'टेंट क्षेत्र', block: 'Dome - 03', room: '21-23', icon: '⚕️', cat: 'General', catHi: 'सामान्य' },
+  { dept: 'Gynecology Department', deptHi: 'स्त्री रोग विभाग', loc: 'Tent Area', locHi: 'टेंट क्षेत्र', block: 'Dome - 03', room: '24-26', icon: '🤰', cat: 'Gynecology', catHi: 'महिला' },
+  { dept: 'ENT (Ear, Nose, Throat)', deptHi: 'नाक, कान, गला', loc: 'Tent Area', locHi: 'टेंट क्षेत्र', block: 'Dome - 03', room: '27', icon: '👂', cat: 'ENT', catHi: 'ईएनटी' },
+  { dept: 'Ophthalmology Department', deptHi: 'नेत्र रोग विभाग', loc: 'Tent Area', locHi: 'टेंट क्षेत्र', block: 'Dome - 03', room: '28', icon: '👁️', cat: 'Eye', catHi: 'नेत्र' },
+  { dept: 'Dental Department', deptHi: 'दंत रोग विभाग', loc: 'Tent Area', locHi: 'टेंट क्षेत्र', block: 'Dome - 03', room: '29-30', icon: '🦷', cat: 'Dental', catHi: 'दंत' },
+  { dept: 'TB & Chest Department', deptHi: 'टीबी एवं छाती विभाग', loc: 'Tent Area', locHi: 'टेंट क्षेत्र', block: 'Dome - 03', room: '31', icon: '🫁', cat: 'TB Chest', catHi: 'टीबी छाती' },
+  { dept: 'Laparoscopy Department', deptHi: 'लेप्रोस्कोपी विभाग', loc: 'Tent Area', locHi: 'टेंट क्षेत्र', block: 'Dome - 03', room: '32', icon: '🔬', cat: 'General', catHi: 'सामान्य' },
+  { dept: 'Family Planning', deptHi: 'परिवार नियोजन', loc: 'Tent Area', locHi: 'टेंट क्षेत्र', block: 'Dome - 03', room: '33', icon: '👨‍👩‍👧‍👦', cat: 'General', catHi: 'सामान्य' },
+  { dept: 'RBSK', deptHi: 'आरबीएसके', loc: 'Tent Area', locHi: 'टेंट क्षेत्र', block: 'Dome - 03', room: '34', icon: '🧒', cat: 'Pediatrics', catHi: 'शिशु' },
+  { dept: 'General OPD', deptHi: 'जनरल ओपीडी', loc: 'Tent Area', locHi: 'टेंट क्षेत्र', block: 'Dome - 03', room: '35-38', icon: '🩺', cat: 'General', catHi: 'सामान्य' },
+  { dept: 'Ratan Jyoti', deptHi: 'रतन ज्योति', loc: 'Tent Area', locHi: 'टेंट क्षेत्र', block: 'Dome - 03', room: '39-40', icon: '👁️', cat: 'Eye', catHi: 'नेत्र' },
+  { dept: 'Bus Clinic', deptHi: 'बस क्लिनिक', loc: 'Tent Area', locHi: 'टेंट क्षेत्र', block: 'Dome - 03', room: '1-7', icon: '🚌', cat: 'General', catHi: 'सामान्य' },
+  { dept: 'Cancer Specialist (Oncology)', deptHi: 'कैंसर विशेषज्ञ', loc: 'First Floor', locHi: 'प्रथम तल', block: 'Block - A', room: '19-20', icon: '🎗️', cat: 'Cancer', catHi: 'कैंसर' },
+  { dept: 'Gastro & Liver', deptHi: 'गैस्ट्रो एवं लीवर', loc: 'First Floor', locHi: 'प्रथम तल', block: 'Block - A', room: '21', icon: '⚕️', cat: 'Gastro', catHi: 'गैस्ट्रो' },
+  { dept: 'NCD', deptHi: 'एनसीडी', loc: 'First Floor', locHi: 'प्रथम तल', block: 'Block - A', room: '22', icon: '🩺', cat: 'General', catHi: 'सामान्य' },
+  { dept: 'Nephrology', deptHi: 'नेफ्रोलॉजी', loc: 'First Floor', locHi: 'प्रथम तल', block: 'Block - A', room: '23', icon: '💧', cat: 'Nephrology', catHi: 'नेफ्रोलॉजी' },
+  { dept: 'Endocrinology', deptHi: 'एंडोक्रायनोलॉजी', loc: 'First Floor', locHi: 'प्रथम तल', block: 'Block - B', room: '24', icon: '🩸', cat: 'Endocrinology', catHi: 'एंडोक्रायनोलॉजी' },
+  { dept: 'Urology', deptHi: 'यूरोलॉजी', loc: 'First Floor', locHi: 'प्रथम तल', block: 'Block - B', room: '25', icon: '💧', cat: 'Urology', catHi: 'यूरोलॉजी' },
+  { dept: 'Hematology', deptHi: 'हीमेटोलॉजी', loc: 'First Floor', locHi: 'प्रथम तल', block: 'Block - B', room: '26', icon: '🩸', cat: 'Hematology', catHi: 'हीमेटोलॉजी' },
+  { dept: 'Sonography General', deptHi: 'सोनोग्राफी जनरल', loc: 'First Floor', locHi: 'प्रथम तल', block: 'Block - B', room: '27', icon: '🖥️', cat: 'General', catHi: 'सामान्य' },
+  { dept: 'Psychiatrist', deptHi: 'मनोरोग विशेषज्ञ', loc: 'First Floor', locHi: 'प्रथम तल', block: 'Block - B', room: '28-29', icon: '🧠', cat: 'Psychiatry', catHi: 'मनोरोग' },
+  { dept: 'ENT', deptHi: 'ईएनटी', loc: 'First Floor', locHi: 'प्रथम तल', block: 'Block - B', room: '30', icon: '👂', cat: 'ENT', catHi: 'ईएनटी' },
+  { dept: 'Eye Specialist', deptHi: 'नेत्र रोग विशेषज्ञ', loc: 'First Floor', locHi: 'प्रथम तल', block: 'Block - B', room: '31', icon: '👁️', cat: 'Eye', catHi: 'नेत्र' },
+  { dept: 'ENT-2', deptHi: 'ईएनटी-2', loc: 'First Floor', locHi: 'प्रथम तल', block: 'Block - B', room: '32', icon: '👂', cat: 'ENT', catHi: 'ईएनटी' },
+  { dept: 'ENT-3', deptHi: 'ईएनटी-3', loc: 'First Floor', locHi: 'प्रथम तल', block: 'Block - B', room: '33', icon: '👂', cat: 'ENT', catHi: 'ईएनटी' },
+  { dept: 'FNAC', deptHi: 'एफएनएसी', loc: 'First Floor', locHi: 'प्रथम तल', block: 'Block - B', room: '34', icon: '💉', cat: 'Pathology', catHi: 'पैथोलॉजी' },
+  { dept: 'Pediatrician', deptHi: 'शिशु रोग विशेषज्ञ', loc: 'First Floor', locHi: 'प्रथम तल', block: 'Block - C', room: '35-36', icon: '👶', cat: 'Pediatrics', catHi: 'शिशु' },
+  { dept: 'Oncology (Cancer)', deptHi: 'ऑन्कोलॉजी (कैंसर)', loc: 'First Floor', locHi: 'प्रथम तल', block: 'Block - C', room: '37', icon: '🎗️', cat: 'Cancer', catHi: 'कैंसर' },
+  { dept: 'Orthopedic Specialist', deptHi: 'अस्थि रोग विशेषज्ञ', loc: 'First Floor', locHi: 'प्रथम तल', block: 'Block - C', room: '38-41', icon: '🦴', cat: 'Orthopedics', catHi: 'अस्थि' },
+  { dept: 'Arthritis', deptHi: 'गठिया रोग', loc: 'First Floor', locHi: 'प्रथम तल', block: 'Block - C', room: '42', icon: '🦴', cat: 'Orthopedics', catHi: 'अस्थि' },
+  { dept: 'Plastic Surgery', deptHi: 'प्लास्टिक सर्जरी', loc: 'First Floor', locHi: 'प्रथम तल', block: 'Block - C', room: '43-44', icon: '⚕️', cat: 'Surgery', catHi: 'सर्जरी' },
+  { dept: 'Cardiothoracic Department', deptHi: 'कार्डियोथोरेसिक विभाग', loc: 'Ground Floor', locHi: 'भू-तल', block: 'Block - A', room: '01', icon: '🫀', cat: 'Cardiology', catHi: 'हृदय' },
+  { dept: 'Cardiology Department', deptHi: 'कार्डियोलॉजी विभाग', loc: 'Ground Floor', locHi: 'भू-तल', block: 'Block - A', room: '02-03', icon: '🫀', cat: 'Cardiology', catHi: 'हृदय' },
+  { dept: 'Echo Room', deptHi: 'ईको रूम', loc: 'Ground Floor', locHi: 'भू-तल', block: 'Block - A', room: '04', icon: '💓', cat: 'Cardiology', catHi: 'हृदय' },
+  { dept: 'Neurology Department', deptHi: 'न्यूरोलॉजी विभाग', loc: 'Ground Floor', locHi: 'भू-तल', block: 'Block - A', room: '05', icon: '🧠', cat: 'Neurology', catHi: 'न्यूरोलॉजी' },
+  { dept: 'Neurology Department', deptHi: 'न्यूरोलॉजी विभाग', loc: 'Ground Floor', locHi: 'भू-तल', block: 'Block - A', room: '06', icon: '🧠', cat: 'Neurology', catHi: 'न्यूरोलॉजी' },
+  { dept: 'Neurosurgery Department', deptHi: 'न्यूरोसर्जरी विभाग', loc: 'Ground Floor', locHi: 'भू-तल', block: 'Block - A', room: '07', icon: '🧠', cat: 'Neurology', catHi: 'न्यूरोलॉजी' },
+  { dept: 'NCD', deptHi: 'एनसीडी', loc: 'Ground Floor', locHi: 'भू-तल', block: 'Block - B', room: '08', icon: '🩺', cat: 'General', catHi: 'सामान्य' },
+  { dept: 'Respiratory Disease', deptHi: 'श्वसन रोग विभाग', loc: 'Ground Floor', locHi: 'भू-तल', block: 'Block - B', room: '09', icon: '🫁', cat: 'TB Chest', catHi: 'टीबी छाती' },
+  { dept: 'Disability Board', deptHi: 'दिव्यांग बोर्ड', loc: 'Ground Floor', locHi: 'भू-तल', block: 'Block - B', room: '10', icon: '♿', cat: 'General', catHi: 'सामान्य' },
+  { dept: 'Physiotherapy', deptHi: 'फिजियोथेरेपी', loc: 'Ground Floor', locHi: 'भू-तल', block: 'Block - B', room: '11', icon: '🏃‍♂️', cat: 'Physiotherapy', catHi: 'फिजियोथेरेपी' },
+  { dept: 'Emergency 24x7', deptHi: 'आकस्मिक चिकित्सा 24x7', loc: 'Ground Floor', locHi: 'भू-तल', block: 'Block - B', room: '12', icon: '🚑', cat: 'Emergency', catHi: 'आपातकालीन' },
+  { dept: 'Pathology Department', deptHi: 'पैथोलॉजी विभाग', loc: 'Ground Floor', locHi: 'भू-तल', block: 'Block - C', room: '13', icon: '🔬', cat: 'Pathology', catHi: 'पैथोलॉजी' },
+  { dept: 'Dental Department', deptHi: 'दंत रोग विभाग', loc: 'Ground Floor', locHi: 'भू-तल', block: 'Block - C', room: '14', icon: '🦷', cat: 'Dental', catHi: 'दंत' },
+  { dept: 'Gynecology Department', deptHi: 'स्त्री रोग विभाग', loc: 'Ground Floor', locHi: 'भू-तल', block: 'Block - C', room: '15', icon: '🤰', cat: 'Gynecology', catHi: 'महिला' },
+  { dept: 'Female Sonography', deptHi: 'महिला सोनोग्राफी', loc: 'Ground Floor', locHi: 'भू-तल', block: 'Block - C', room: '16', icon: '🖥️', cat: 'Gynecology', catHi: 'महिला' },
+  { dept: 'Dermatology (Skin)', deptHi: 'त्वचा रोग (चर्मरोग)', loc: 'Ground Floor', locHi: 'भू-तल', block: 'Block - C', room: '17-18', icon: '🤚', cat: 'Dermatology', catHi: 'त्वचा' },
+];
