@@ -1,6 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl         = import.meta.env.VITE_SUPABASE_URL as string;
+// SECURITY: This MUST be the ANON key, not the SERVICE_ROLE key.
+// Row Level Security (RLS) relies on the anon key to restrict access.
 const supabasePublishable = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
 
 if (!supabaseUrl || !supabasePublishable) {

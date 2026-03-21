@@ -124,7 +124,7 @@
                 categories: {
                     "All": "All", "Cancer": "Cancer", "Pathology": "Pathology", "TB Chest": "TB Chest", 
                     "Eye": "Eye", "Dental": "Dental", "Pediatrics": "Child", "Orthopedics": "Bone", 
-                    "Cardiology": "Heart", "Gynecology": "Women", "ENT": "ENT"
+                    "Cardiology": "Heart", "Gynecology": "Women", "ENT": "ENT", "Dermatology": "Skin"
                 }
             },
             hi: {
@@ -141,7 +141,7 @@
                 categories: {
                     "All": "सभी", "Cancer": "कैंसर", "Pathology": "पैथोलॉजी", "TB Chest": "टीबी/छाती", 
                     "Eye": "नेत्र", "Dental": "दंत", "Pediatrics": "शिशु", "Orthopedics": "अस्थि", 
-                    "Cardiology": "हृदय", "Gynecology": "महिला", "ENT": "ईएनटी"
+                    "Cardiology": "हृदय", "Gynecology": "महिला", "ENT": "ईएनटी", "Dermatology": "त्वचा"
                 }
             }
         };
@@ -150,7 +150,7 @@
             { id: 'All', icon: '' }, { id: 'Cancer', icon: '🎗️' }, { id: 'Pathology', icon: '🔬' }, 
             { id: 'TB Chest', icon: '🫁' }, { id: 'Eye', icon: '👁️' }, { id: 'Dental', icon: '🦷' }, 
             { id: 'Pediatrics', icon: '👶' }, { id: 'Orthopedics', icon: '🦴' }, { id: 'Cardiology', icon: '🫀' }, 
-            { id: 'Gynecology', icon: '🤰' }, { id: 'ENT', icon: '👂' }
+            { id: 'Gynecology', icon: '🤰' }, { id: 'ENT', icon: '👂' }, { id: 'Dermatology', icon: '🤚' }
         ];
 
         const searchInput = document.getElementById('searchInput');
@@ -179,6 +179,20 @@
         });
         // -----------------------------
 
+        // --- SECURITY: ESCAPE HTML HELPERS ---
+        function escapeHTML(str) {
+            if (!str) return "";
+            return str.replace(/[&<>"']/g, function(m) {
+                return {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;'
+                }[m];
+            });
+        }
+
         function toggleLanguage() {
             currentLang = currentLang === 'en' ? 'hi' : 'en';
             updateStaticUI();
@@ -188,13 +202,13 @@
 
         function updateStaticUI() {
             const dict = i18n[currentLang];
-            document.getElementById('ui-title').innerText = dict.title;
-            document.getElementById('lang-text').innerText = dict.btnLang;
-            document.getElementById('ui-stat-total').innerText = dict.statTotal;
-            document.getElementById('ui-stat-filtered').innerText = dict.statFiltered;
-            document.getElementById('ui-stat-view').innerText = dict.statView;
-            document.getElementById('ui-map-title').innerText = dict.mapTitle;
-            document.getElementById('ui-gallery-title').innerText = dict.galleryTitle;
+            document.getElementById('ui-title').textContent = dict.title;
+            document.getElementById('lang-text').textContent = dict.btnLang;
+            document.getElementById('ui-stat-total').textContent = dict.statTotal;
+            document.getElementById('ui-stat-filtered').textContent = dict.statFiltered;
+            document.getElementById('ui-stat-view').textContent = dict.statView;
+            document.getElementById('ui-map-title').textContent = dict.mapTitle;
+            document.getElementById('ui-gallery-title').textContent = dict.galleryTitle;
             searchInput.placeholder = dict.searchPlaceholder;
         }
 
@@ -202,8 +216,9 @@
             const dict = i18n[currentLang];
             filterContainer.innerHTML = categoriesList.map(cat => {
                 const isActive = cat.id === currentCategory ? 'active' : '';
-                const displayText = cat.icon ? `${cat.icon} ${dict.categories[cat.id]}` : dict.categories[cat.id];
-                return `<button class="filter-btn ${isActive}" onclick="filterCategory('${cat.id}')">${displayText}</button>`;
+                const categoryLabel = dict.categories[cat.id];
+                const displayText = cat.icon ? `${cat.icon} ${escapeHTML(categoryLabel)}` : escapeHTML(categoryLabel);
+                return `<button class="filter-btn ${isActive}" onclick="filterCategory('${escapeHTML(cat.id)}')">${displayText}</button>`;
             }).join('');
         }
 
@@ -238,12 +253,12 @@
                 return matchesSearch && matchesCategory;
             }) : [];
 
-            document.getElementById('stat-filtered').innerText = filteredData.length;
-            document.getElementById('stat-view').innerText = dict.categories[currentCategory];
+            document.getElementById('stat-filtered').textContent = filteredData.length;
+            document.getElementById('stat-view').textContent = dict.categories[currentCategory];
             updateMapPins(filteredData);
 
             if (filteredData.length === 0) {
-                listContainer.innerHTML = `<div style="text-align:center; padding: 20px; color: #64748b;">${dict.noResults}</div>`;
+                listContainer.innerHTML = `<div style="text-align:center; padding: 20px; color: #64748b;">${escapeHTML(dict.noResults)}</div>`;
                 return;
             }
 
@@ -258,14 +273,14 @@
                         <div class="card-left">
                             <div class="card-icon">${item.icon}</div>
                             <div>
-                                <h3 class="card-title">${displayDept}</h3>
+                                <h3 class="card-title">${escapeHTML(displayDept)}</h3>
                                 <p class="card-subtitle">
-                                    <span class="color-${colorCode}">${displayBlock}</span> 
-                                    <span style="color: #64748b;">• ${displayLoc}</span>
+                                    <span class="color-${colorCode}">${escapeHTML(displayBlock)}</span> 
+                                    <span style="color: #64748b;">• ${escapeHTML(displayLoc)}</span>
                                 </p>
                             </div>
                         </div>
-                        <div class="location-badge bg-${colorCode}">${dict.roomLabel} ${item.room}</div>
+                        <div class="location-badge bg-${colorCode}">${escapeHTML(dict.roomLabel)} ${escapeHTML(item.room)}</div>
                     </div>
                 `;
             }).join('');

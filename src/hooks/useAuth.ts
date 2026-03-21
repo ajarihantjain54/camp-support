@@ -22,12 +22,10 @@ export function useAuth() {
     setLoading(true);
     setError(null);
 
-    // Step 1: verify PIN exists
-    const { data, error: dbError } = await supabase
-      .from('staff')
-      .select('name, pin_access')
-      .eq('pin_access', pin.trim())
-      .maybeSingle();
+    // Call secure RPC instead of querying the staff table directly
+    const { data, error: dbError } = await supabase.rpc('verify_staff_pin', { 
+      pin: pin.trim() 
+    });
 
     if (dbError) {
       setLoading(false);
@@ -41,19 +39,14 @@ export function useAuth() {
       return false;
     }
 
-    // Step 2: try to read is_admin (column may not exist on older installs)
-    let isAdmin = false;
-    const { data: adminData } = await supabase
-      .from('staff')
-      .select('is_admin')
-      .eq('pin_access', pin.trim())
-      .maybeSingle();
-    if (adminData && typeof (adminData as any).is_admin === 'boolean') {
-      isAdmin = (adminData as any).is_admin;
-    }
-
+    // data contains { name, is_admin, contact_number }
     setLoading(false);
-    setAuth({ isAuthenticated: true, staffName: data.name, staffPin: pin, isAdmin });
+    setAuth({ 
+      isAuthenticated: true, 
+      staffName: data.name, 
+      staffPin: pin, 
+      isAdmin: data.is_admin 
+    });
     return true;
   }
 

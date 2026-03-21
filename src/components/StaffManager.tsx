@@ -8,15 +8,11 @@ export default function StaffManager() {
   const [submitting, setSubmitting] = useState(false);
   const [success,    setSuccess]    = useState(false);
   const [error,      setError]      = useState<string | null>(null);
-  const [revealedPins, setRevealedPins] = useState<Set<number>>(new Set());
 
-  function togglePin(id: number) {
-    setRevealedPins(prev => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  }
+  // For PIN Reset
+  const [resettingId, setResettingId] = useState<number | null>(null);
+  const [newPin, setNewPin] = useState('');
+  const [isResetting, setIsResetting] = useState(false);
 
   const [name,          setName]          = useState('');
   const [pin,           setPin]           = useState('');
@@ -25,7 +21,7 @@ export default function StaffManager() {
   async function fetchStaff() {
     const { data } = await supabase
       .from('staff')
-      .select('*')
+      .select('id, name, contact_number, is_admin, created_at') // Don't even fetch hashed pins
       .order('created_at', { ascending: true });
     setStaff((data as StaffRow[]) ?? []);
     setLoading(false);
@@ -41,7 +37,7 @@ export default function StaffManager() {
 
     const { error: dbError } = await supabase.from('staff').insert({
       name:           name.trim(),
-      pin_access:     pin.trim(),
+      pin_access:     pin.trim(), // Trigger hashes this
       contact_number: contactNumber.trim() || null,
     });
 
@@ -54,6 +50,26 @@ export default function StaffManager() {
       setShowForm(false);
       fetchStaff();
       setTimeout(() => setSuccess(false), 4000);
+    }
+  }
+
+  async function handleResetPin(e: React.FormEvent) {
+    e.preventDefault();
+    if (!resettingId || !newPin.trim()) return;
+    setIsResetting(true);
+    
+    const { data, error: rpcError } = await supabase.rpc('reset_staff_pin', {
+      staff_id: resettingId,
+      new_pin: newPin.trim()
+    });
+
+    setIsResetting(false);
+    if (rpcError) {
+      alert('Error resetting PIN: ' + rpcError.message);
+    } else if (data) {
+      alert('PIN reset successfully!');
+      setResettingId(null);
+      setNewPin('');
     }
   }
 
@@ -106,6 +122,33 @@ export default function StaffManager() {
         </form>
       )}
 
+      {/* PIN Reset Modal/Overlay */}
+      {resettingId && (
+        <div className="modal-overlay" style={{ display: 'flex', zIndex: 1100 }} onClick={() => setResettingId(null)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ padding: 24, background: '#1e1e1e', border: '1px solid #334155' }}>
+            <h3 style={{ marginTop: 0 }}>Reset PIN for {staff.find(s => s.id === resettingId)?.name}</h3>
+            <form onSubmit={handleResetPin}>
+              <label className="field-label">New PIN</label>
+              <input
+                className="search-box"
+                type="password"
+                placeholder="Enter new PIN"
+                value={newPin}
+                onChange={e => setNewPin(e.target.value)}
+                autoFocus
+                required
+              />
+              <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
+                <button type="submit" className="ticket-submit-btn" disabled={isResetting || !newPin.trim()}>
+                  {isResetting ? 'Resetting…' : 'Confirm Reset'}
+                </button>
+                <button type="button" className="refresh-btn" onClick={() => setResettingId(null)}>Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {success && <p className="ticket-success" style={{ marginBottom: 12 }}>✅ Staff member added!</p>}
 
       {loading ? (
@@ -115,25 +158,18 @@ export default function StaffManager() {
           {staff.map(member => (
             <div key={member.id} className="staff-row">
               <div className="staff-row-info">
-                <span className="staff-row-name">{member.name}</span>
+                <span className="staff-row-name">{member.name} {member.is_admin && <span style={{ fontSize: 10, opacity: 0.6 }}>(Admin)</span>}</span>
                 {member.contact_number && (
                   <span className="staff-row-contact">📞 {member.contact_number}</span>
                 )}
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span className="staff-row-pin" style={{ fontFamily: 'monospace', minWidth: 60 }}>
-                  {revealedPins.has(member.id)
-                    ? member.pin_access
-                    : '•'.repeat(member.pin_access.length)}
-                </span>
-                <button
-                  className="pin-toggle-btn"
-                  onClick={() => togglePin(member.id)}
-                  title={revealedPins.has(member.id) ? 'Hide PIN' : 'Show PIN'}
-                >
-                  {revealedPins.has(member.id) ? '🙈' : '👁'}
-                </button>
-              </div>
+              <button
+                className="refresh-btn"
+                style={{ fontSize: 11, padding: '4px 8px' }}
+                onClick={() => setResettingId(member.id)}
+              >
+                🔑 Reset PIN
+              </button>
             </div>
           ))}
         </div>

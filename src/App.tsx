@@ -42,7 +42,7 @@ const i18n: Record<Lang, I18nDict> = {
     categories: {
       All: 'All', Cancer: 'Cancer', Pathology: 'Pathology', 'TB Chest': 'TB Chest',
       Eye: 'Eye', Dental: 'Dental', Pediatrics: 'Child', Orthopedics: 'Bone',
-      Cardiology: 'Heart', Gynecology: 'Women', ENT: 'ENT',
+      Cardiology: 'Heart', Gynecology: 'Women', ENT: 'ENT', Dermatology: 'Skin',
     },
   },
   hi: {
@@ -59,7 +59,7 @@ const i18n: Record<Lang, I18nDict> = {
     categories: {
       All: 'सभी', Cancer: 'कैंसर', Pathology: 'पैथोलॉजी', 'TB Chest': 'टीबी/छाती',
       Eye: 'नेत्र', Dental: 'दंत', Pediatrics: 'शिशु', Orthopedics: 'अस्थि',
-      Cardiology: 'हृदय', Gynecology: 'महिला', ENT: 'ईएनटी',
+      Cardiology: 'हृदय', Gynecology: 'महिला', ENT: 'ईएनटी', Dermatology: 'त्वचा',
     },
   },
 };
@@ -76,6 +76,7 @@ const categoriesList: { id: string; icon: string }[] = [
   { id: 'Cardiology', icon: '🫀' },
   { id: 'Gynecology', icon: '🤰' },
   { id: 'ENT',        icon: '👂' },
+  { id: 'Dermatology',icon: '🤚' },
 ];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
