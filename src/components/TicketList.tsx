@@ -7,7 +7,7 @@ interface Props {
   loading: boolean;
   pending: PendingTicket[];
   onRefresh: () => void;
-  staffPin: string;
+  staffName: string;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -24,7 +24,7 @@ const PRIORITY_ICONS: Record<string, string> = {
 };
 const PRIORITY_ORDER = ['low', 'normal', 'high', 'critical'] as const;
 
-export default function TicketList({ tickets, loading, pending, onRefresh, staffPin }: Props) {
+export default function TicketList({ tickets, loading, pending, onRefresh, staffName }: Props) {
   const [escalating, setEscalating] = useState<number | null>(null);
   const openPending = tickets.filter(t => t.status !== 'resolved');
   const total = pending.length + openPending.length;
@@ -76,7 +76,7 @@ export default function TicketList({ tickets, loading, pending, onRefresh, staff
             </div>
           ))}
           {openPending.map(ticket => {
-            const isOwner = ticket.creator_pin === staffPin;
+            const isOwner = ticket.creator_name === staffName;
             const canEscalate = isOwner && ticket.status !== 'resolved' && ticket.priority !== 'critical';
             return (
               <div key={ticket.id} className="ticket-card">

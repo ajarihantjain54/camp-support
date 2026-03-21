@@ -25,11 +25,11 @@ export default function LoginModal({ onLogin, loading, error, onClose }: Props) 
         <form onSubmit={handleSubmit} className="login-form">
           <input
             type="password"
-            inputMode="numeric"
+            inputMode="text"
             maxLength={8}
             placeholder="Enter PIN"
             value={pin}
-            onChange={e => setPin(e.target.value.replace(/\D/g, ''))}
+            onChange={e => setPin(e.target.value.replace(/[^a-zA-Z0-9]/g, ''))}
             className="pin-input"
             autoFocus
           />

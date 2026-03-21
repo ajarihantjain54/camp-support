@@ -6,7 +6,7 @@ import type { PendingTicket } from '../hooks/useSync';
 type Priority = 'low' | 'normal' | 'high' | 'critical';
 
 interface Props {
-  creatorPin: string;
+  creatorName: string;
   isOnline: boolean;
   queueTicket: (ticket: Omit<PendingTicket, 'localId' | 'queued_at'>) => void;
 }
@@ -30,7 +30,7 @@ function getRoomsForLocation(loc: string) {
     .map(item => ({ value: item.room, label: `Room ${item.room} — ${item.dept}` }));
 }
 
-export default function TicketForm({ creatorPin, isOnline, queueTicket }: Props) {
+export default function TicketForm({ creatorName, isOnline, queueTicket }: Props) {
   const [description, setDescription]     = useState('');
   const [location, setLocation]           = useState(locationOptions[0]);
   const [room, setRoom]                   = useState('');
@@ -69,7 +69,7 @@ export default function TicketForm({ creatorPin, isOnline, queueTicket }: Props)
       location:          fullLocation,
       status:            'open' as const,
       priority,
-      creator_pin:       creatorPin,
+      creator_name:      creatorName,
     };
 
     setSubmitting(true);

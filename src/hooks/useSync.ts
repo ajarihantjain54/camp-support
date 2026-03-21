@@ -7,7 +7,7 @@ export interface PendingTicket {
   location: string;
   status: 'open';
   priority: 'low' | 'normal' | 'high' | 'critical';
-  creator_pin: string;
+  creator_name: string;
   queued_at: string;
 }
 
@@ -73,7 +73,7 @@ export function useSync() {
           issue_description: ticket.issue_description,
           location:          ticket.location,
           status:            ticket.status,
-          creator_pin:       ticket.creator_pin,
+          creator_name:      ticket.creator_name,
         });
         if (error) remaining.push(ticket); // keep for retry on next attempt
       }

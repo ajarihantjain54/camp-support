@@ -220,7 +220,7 @@ export default function App() {
 
           {staffTab === 'report' && (
             <TicketForm
-              creatorPin={auth.staffPin!}
+              creatorName={auth.staffName!}
               isOnline={sync.isOnline}
               queueTicket={sync.queueTicket}
             />
@@ -231,7 +231,7 @@ export default function App() {
               loading={loading}
               pending={sync.pending}
               onRefresh={refetch}
-              staffPin={auth.staffPin!}
+              staffName={auth.staffName!}
             />
           )}
           {staffTab === 'admin' && (

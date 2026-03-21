@@ -33,7 +33,7 @@ create table if not exists public.tickets (
                         check (status in ('open', 'pending', 'resolved')),
   priority           text        not null default 'normal'
                         check (priority in ('low', 'normal', 'high', 'critical')),
-  creator_pin        text        not null,
+  creator_name       text        not null,
   assigned_to        text,                  -- name or PIN of assignee
   created_at         timestamptz not null default now()
 );

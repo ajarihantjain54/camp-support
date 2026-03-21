@@ -28,7 +28,7 @@ export interface TicketRow {
   location: string;
   status: 'open' | 'pending' | 'resolved';
   priority: 'low' | 'normal' | 'high' | 'critical';
-  creator_pin: string;
+  creator_name: string;
   assigned_to: string | null;
   created_at: string;
 }

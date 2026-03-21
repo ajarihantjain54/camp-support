@@ -80,11 +80,11 @@ export default function StaffManager() {
           <input
             className="ticket-select"
             type="password"
-            inputMode="numeric"
+            inputMode="text"
             maxLength={8}
-            placeholder="4–8 digit PIN"
+            placeholder="4–8 char PIN"
             value={pin}
-            onChange={e => setPin(e.target.value.replace(/\D/g, ''))}
+            onChange={e => setPin(e.target.value.replace(/[^a-zA-Z0-9]/g, ''))}
             required
           />
           <label className="field-label">Contact Number <span className="field-optional">(optional)</span></label>
