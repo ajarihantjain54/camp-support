@@ -104,7 +104,7 @@ export default function App() {
 
   const auth    = useAuth();
   const sync    = useSync();
-  const { tickets, loading, refetch } = useTickets();
+  const { tickets, loading, refetch, updateTicketOptimistic } = useTickets();
   const [staffTab, setStaffTab] = useState<'report' | 'feed' | 'admin' | 'team'>('report');
 
   const dict = i18n[lang];
@@ -233,10 +233,15 @@ export default function App() {
               pending={sync.pending}
               onRefresh={refetch}
               staffName={auth.staffName!}
+              updateTicketOptimistic={updateTicketOptimistic}
             />
           )}
           {staffTab === 'admin' && (
-            <AdminPanel tickets={tickets} staffName={auth.staffName!} />
+            <AdminPanel 
+              tickets={tickets} 
+              staffName={auth.staffName!} 
+              updateTicketOptimistic={updateTicketOptimistic}
+            />
           )}
           {staffTab === 'team' && <StaffManager />}
         </div>
@@ -286,6 +291,7 @@ export default function App() {
             src="images/photo1.jpg"
             alt="Venue Photo 1"
             className="venue-img"
+            loading="lazy"
             onClick={() => setModalSrc('images/photo1.jpg')}
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
           />
@@ -293,6 +299,7 @@ export default function App() {
             src="images/photo2.jpg"
             alt="Venue Photo 2"
             className="venue-img"
+            loading="lazy"
             onClick={() => setModalSrc('images/photo2.jpg')}
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
           />

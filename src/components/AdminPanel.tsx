@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { supabase, type TicketRow } from '../lib/supabase';
+import { type TicketRow } from '../lib/supabase';
 
 interface Props {
   tickets: TicketRow[];
   staffName: string;
+  updateTicketOptimistic: (id: number, updates: Partial<TicketRow>) => Promise<boolean>;
 }
 
 const STATUS_ORDER: TicketRow['status'][] = ['open', 'pending', 'resolved'];
@@ -14,7 +15,7 @@ const STATUS_ICONS:    Record<string, string> = { open: '🔴', pending: '🟡',
 const PRIORITY_COLORS: Record<string, string> = { low: '#94a3b8', normal: '#60a5fa', high: '#fbbf24', critical: '#fb7185' };
 const PRIORITY_ICONS:  Record<string, string> = { low: '⬇️', normal: '➡️', high: '⬆️', critical: '🚨' };
 
-export default function AdminPanel({ tickets, staffName }: Props) {
+export default function AdminPanel({ tickets, staffName, updateTicketOptimistic }: Props) {
   const [updating,     setUpdating]     = useState<number | null>(null);
   const [assigning,    setAssigning]    = useState<number | null>(null);
   const [assignInput,  setAssignInput]  = useState('');
@@ -22,21 +23,21 @@ export default function AdminPanel({ tickets, staffName }: Props) {
   async function cycleStatus(ticket: TicketRow) {
     const next = STATUS_ORDER[(STATUS_ORDER.indexOf(ticket.status) + 1) % STATUS_ORDER.length];
     setUpdating(ticket.id);
-    await supabase.from('tickets').update({ status: next }).eq('id', ticket.id);
+    await updateTicketOptimistic(ticket.id, { status: next });
     setUpdating(null);
   }
 
   async function cyclePriority(ticket: TicketRow) {
     const next = PRIORITY_ORDER[(PRIORITY_ORDER.indexOf(ticket.priority) + 1) % PRIORITY_ORDER.length];
     setUpdating(ticket.id);
-    await supabase.from('tickets').update({ priority: next }).eq('id', ticket.id);
+    await updateTicketOptimistic(ticket.id, { priority: next });
     setUpdating(null);
   }
 
   async function assignTicket(ticketId: number) {
     const name = assignInput.trim() || staffName;
     setUpdating(ticketId);
-    await supabase.from('tickets').update({ assigned_to: name }).eq('id', ticketId);
+    await updateTicketOptimistic(ticketId, { assigned_to: name });
     setUpdating(null);
     setAssigning(null);
     setAssignInput('');

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase, type TicketRow } from '../lib/supabase';
+import { type TicketRow } from '../lib/supabase';
 import type { PendingTicket } from '../hooks/useSync';
 
 interface Props {
@@ -8,6 +8,7 @@ interface Props {
   pending: PendingTicket[];
   onRefresh: () => void;
   staffName: string;
+  updateTicketOptimistic: (id: number, updates: Partial<TicketRow>) => Promise<boolean>;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -24,7 +25,7 @@ const PRIORITY_ICONS: Record<string, string> = {
 };
 const PRIORITY_ORDER = ['low', 'normal', 'high', 'critical'] as const;
 
-export default function TicketList({ tickets, loading, pending, onRefresh, staffName }: Props) {
+export default function TicketList({ tickets, loading, pending, onRefresh, staffName, updateTicketOptimistic }: Props) {
   const [escalating, setEscalating] = useState<number | null>(null);
   const openPending = tickets.filter(t => t.status !== 'resolved');
   const total = pending.length + openPending.length;
@@ -38,13 +39,13 @@ export default function TicketList({ tickets, loading, pending, onRefresh, staff
   }
 
   async function escalatePriority(ticket: TicketRow) {
-    const idx = PRIORITY_ORDER.indexOf(ticket.priority);
+    const idx = PRIORITY_ORDER.indexOf(ticket.priority as any);
     if (idx >= PRIORITY_ORDER.length - 1) return;
     const next = PRIORITY_ORDER[idx + 1];
+    
     setEscalating(ticket.id);
-    await supabase.from('tickets').update({ priority: next }).eq('id', ticket.id);
+    await updateTicketOptimistic(ticket.id, { priority: next as any });
     setEscalating(null);
-    onRefresh();
   }
 
   return (
@@ -54,7 +55,7 @@ export default function TicketList({ tickets, loading, pending, onRefresh, staff
         <button className="refresh-btn" onClick={onRefresh}>↻ Refresh</button>
       </div>
 
-      {loading ? (
+      {loading && tickets.length === 0 ? (
         <p className="ticket-meta">Loading…</p>
       ) : total === 0 ? (
         <p className="ticket-meta">No open or pending tickets. 🎉</p>
