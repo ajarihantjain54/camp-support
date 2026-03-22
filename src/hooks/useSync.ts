@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
+import { SESSION_TOKEN_KEY } from './useAuth';
 
 export interface PendingTicket {
   localId: string;
@@ -69,13 +70,18 @@ export function useSync() {
 
       for (const ticket of queue) {
         if (cancelled) break;
-        const { error } = await supabase.from('tickets').insert({
-          issue_description: ticket.issue_description,
-          location:          ticket.location,
-          status:            ticket.status,
-          creator_name:      ticket.creator_name,
+        const token = localStorage.getItem(SESSION_TOKEN_KEY) ?? '';
+        const { data: ok, error } = await supabase.rpc('insert_ticket_secure', {
+          p_token:        token,
+          p_description:  ticket.issue_description,
+          p_location:     ticket.location,
+          p_priority:     ticket.priority,
+          p_creator_name: ticket.creator_name,
+          p_status:       ticket.status,
         });
-        if (error) remaining.push(ticket); // keep for retry on next attempt
+        // Keep in queue if network error; discard if token expired (user must re-login)
+        if (error) remaining.push(ticket);
+        else if (ok === false) remaining.push(ticket); // token expired — retry after re-login
       }
 
       if (!cancelled) {

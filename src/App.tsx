@@ -160,6 +160,10 @@ export default function App() {
               >
                 👤 {auth.staffName} {showStaff ? '▲' : '▼'}
               </button>
+            ) : auth.restoring ? (
+              <button className="staff-btn" disabled style={{ opacity: 0.5 }}>
+                ⏳ Checking…
+              </button>
             ) : (
               <button
                 className="staff-btn"
@@ -369,7 +373,7 @@ export default function App() {
 
 
       {/* ── Login Modal ───────────────────────────────────────────────── */}
-      {showLogin && !auth.isAuthenticated && (
+      {showLogin && !auth.isAuthenticated && !auth.restoring && (
         <LoginModal
           onLogin={async (pin) => {
             const ok = await auth.login(pin);

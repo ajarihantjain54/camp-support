@@ -32,7 +32,10 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // 3MiB
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/,
+            // Cache read-only Supabase REST queries (GET) for offline ticket feed.
+            // RPC calls (/rpc/) are explicitly excluded — they carry session tokens
+            // and mutate data, so they must never be served from cache.
+            urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/(?!rpc\/).*/,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'supabase-api-cache',

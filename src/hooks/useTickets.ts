@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase, type TicketRow } from '../lib/supabase';
+import { SESSION_TOKEN_KEY } from './useAuth';
 
 const CACHE_KEY = 'cached_tickets';
 
@@ -50,15 +51,19 @@ export function useTickets() {
       return updated;
     });
 
-    // 2. Perform actual server update
-    const { error } = await supabase
-      .from('tickets')
-      .update(updates)
-      .eq('id', id);
+    // 2. Perform actual server update via RPC (token + admin verified server-side)
+    const token = localStorage.getItem(SESSION_TOKEN_KEY);
+    const { data: ok, error } = await supabase.rpc('update_ticket_secure', {
+      p_token:       token ?? '',
+      p_ticket_id:   id,
+      p_status:      updates.status      ?? null,
+      p_priority:    updates.priority    ?? null,
+      p_assigned_to: updates.assigned_to ?? null,
+    });
 
-    // 3. Rollback if server update fails
-    if (error) {
-      console.error('Failed to update ticket:', error);
+    // 3. Rollback if server update fails or token/admin check rejected
+    if (error || ok === false) {
+      console.error('Failed to update ticket:', error ?? 'Permission denied');
       setTickets(previousTickets);
       saveCachedTickets(previousTickets);
       return false;

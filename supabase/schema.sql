@@ -88,13 +88,15 @@ alter table public.tickets enable row level security;
 -- Deny all public access to staff table (select/insert/update/delete)
 
 -- Tickets Table Policies
-drop policy if exists "tickets_insert_anon" on public.tickets;
-drop policy if exists "tickets_read_all" on public.tickets;
+drop policy if exists "tickets_insert_anon"    on public.tickets;
+drop policy if exists "tickets_read_all"       on public.tickets;
 drop policy if exists "tickets_update_creator" on public.tickets;
 
-create policy "tickets_insert_anon" on public.tickets for insert with check (true);
+-- Anyone with the anon key can read tickets (staff feed is public within the app)
 create policy "tickets_read_all" on public.tickets for select using (true);
-create policy "tickets_update_creator" on public.tickets for update using (true);
+-- ⛔ Direct INSERT blocked — must go through insert_ticket_secure() RPC
+-- ⛔ Direct UPDATE blocked — must go through update_ticket_secure() RPC
+-- Both RPCs verify the session token server-side before mutating data.
 
 
 -- ── 4. Secure PIN Verification (RPC) ──────────────────────────────────────────
@@ -110,7 +112,135 @@ as $$
   limit 1;
 $$;
 
--- ── 5. Secure PIN Reset (RPC) ─────────────────────────────────────────────────
+-- ── 5. Server-side sessions ─────────────────────────────────────────────────
+-- Only an opaque random token is stored client-side; all identity claims
+-- are verified server-side on every app open.  localStorage tampering
+-- cannot grant access because the token must exist in this table.
+create table if not exists public.sessions (
+  token      text        primary key
+                           default encode(gen_random_bytes(32), 'hex'),
+  staff_id   bigint      not null references public.staff(id) on delete cascade,
+  expires_at timestamptz not null default now() + interval '12 hours',
+  created_at timestamptz not null default now()
+);
+
+-- No direct client access to sessions table
+alter table public.sessions enable row level security;
+
+-- Called immediately after verify_staff_pin succeeds; returns the new token.
+drop function if exists public.create_session(bigint);
+create or replace function public.create_session(p_staff_id bigint)
+returns text
+language sql security definer
+as $$
+  insert into public.sessions (staff_id)
+  values (p_staff_id)
+  returning token;
+$$;
+
+-- Called on every app restore; returns name+is_admin only for a valid,
+-- non-expired token — no client-supplied identity claims are trusted.
+drop function if exists public.verify_session(text);
+create or replace function public.verify_session(p_token text)
+returns table(name text, is_admin boolean)
+language sql security definer stable
+as $$
+  select st.name, st.is_admin
+  from   public.sessions se
+  join   public.staff    st on st.id = se.staff_id
+  where  se.token      = p_token
+    and  se.expires_at > now()
+  limit 1;
+$$;
+
+-- Called on logout to immediately invalidate the token server-side.
+drop function if exists public.delete_session(text);
+create or replace function public.delete_session(p_token text)
+returns void
+language sql security definer
+as $$
+  delete from public.sessions where token = p_token;
+$$;
+
+-- ── 6. Secure ticket insert (session token required) ────────────────────────
+-- Replaces the open tickets_insert_anon RLS policy.
+-- Any authenticated staff member (valid session, any role) may submit a ticket.
+drop function if exists public.insert_ticket_secure(text, text, text, text, text, text);
+create or replace function public.insert_ticket_secure(
+  p_token           text,
+  p_description     text,
+  p_location        text,
+  p_priority        text    default 'normal',
+  p_creator_name    text    default '',
+  p_status          text    default 'open'
+)
+returns boolean
+language plpgsql security definer
+as $$
+declare
+  v_staff_id bigint;
+begin
+  -- Verify the token is valid and non-expired (any staff, not just admin)
+  select se.staff_id into v_staff_id
+  from   public.sessions se
+  where  se.token      = p_token
+    and  se.expires_at > now()
+  limit 1;
+
+  if v_staff_id is null then
+    return false;
+  end if;
+
+  insert into public.tickets (issue_description, location, priority, creator_name, status)
+  values (p_description, p_location, p_priority, p_creator_name, p_status);
+
+  return true;
+end;
+$$;
+
+-- ── 7. Secure ticket update (token + admin verified server-side) ────────────────
+-- Replaces the open RLS UPDATE policy.  The anon key alone cannot update tickets.
+-- Only a valid, non-expired session whose staff row has is_admin = true may update.
+drop function if exists public.update_ticket_secure(text, bigint, text, text, text);
+create or replace function public.update_ticket_secure(
+  p_token       text,
+  p_ticket_id   bigint,
+  p_status      text    default null,
+  p_priority    text    default null,
+  p_assigned_to text    default null
+)
+returns boolean
+language plpgsql security definer
+as $$
+declare
+  v_is_admin boolean;
+begin
+  -- 1. Verify the session token is valid, non-expired, and belongs to an admin.
+  select st.is_admin into v_is_admin
+  from   public.sessions se
+  join   public.staff    st on st.id = se.staff_id
+  where  se.token      = p_token
+    and  se.expires_at > now()
+  limit 1;
+
+  -- Reject if token missing / expired / not an admin
+  if v_is_admin is null or not v_is_admin then
+    return false;
+  end if;
+
+  -- 2. Perform the update using only the explicitly supplied fields.
+  update public.tickets
+  set
+    status      = coalesce(p_status,      status),
+    priority    = coalesce(p_priority,    priority),
+    assigned_to = coalesce(p_assigned_to, assigned_to)
+  where id = p_ticket_id;
+
+  return found;
+end;
+$$;
+
+-- ── 8. Secure PIN Reset (RPC) ─────────────────────────────────────────────────
 create or replace function public.reset_staff_pin(staff_id bigint, new_pin text)
 returns boolean
 language plpgsql
@@ -127,7 +257,7 @@ end;
 $$;
 
 
--- ── 6. Enable Realtime on tickets ─────────────────────────────────────────────
+-- ── 9. Enable Realtime on tickets ─────────────────────────────────────────────
 do $$
 begin
   if not exists (

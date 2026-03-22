@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { campData } from '../data/campData';
+import { SESSION_TOKEN_KEY } from '../hooks/useAuth';
 import type { PendingTicket } from '../hooks/useSync';
 
 type Priority = 'low' | 'normal' | 'high' | 'critical';
@@ -84,9 +85,17 @@ export default function TicketForm({ creatorName, isOnline, queueTicket }: Props
       return;
     }
 
-    const { error: dbError } = await supabase.from('tickets').insert(payload);
+    const token = localStorage.getItem(SESSION_TOKEN_KEY) ?? '';
+    const { data: ok, error: dbError } = await supabase.rpc('insert_ticket_secure', {
+      p_token:        token,
+      p_description:  payload.issue_description,
+      p_location:     payload.location,
+      p_priority:     payload.priority,
+      p_creator_name: payload.creator_name,
+      p_status:       payload.status,
+    });
     setSubmitting(false);
-    if (dbError) {
+    if (dbError || ok === false) {
       queueTicket(payload);
       setSuccess('queued');
     } else {
