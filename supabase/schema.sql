@@ -112,6 +112,35 @@ as $$
   limit 1;
 $$;
 
+-- Combined login: verify PIN + create session in a single round trip.
+-- Returns token+name+is_admin on success, NULL row on bad PIN.
+-- Halves login latency on slow/camp networks vs two sequential RPC calls.
+drop function if exists public.login_staff(text);
+create or replace function public.login_staff(input_pin text)
+returns table(token text, name text, is_admin boolean)
+language plpgsql security definer
+as $$
+declare
+  v_staff public.staff%rowtype;
+  v_token text;
+begin
+  select * into v_staff
+  from public.staff
+  where pin_access = crypt(input_pin, pin_access)
+  limit 1;
+
+  if v_staff.id is null then
+    return; -- empty result = bad PIN
+  end if;
+
+  insert into public.sessions (staff_id)
+  values (v_staff.id)
+  returning sessions.token into v_token;
+
+  return query select v_token, v_staff.name, v_staff.is_admin;
+end;
+$$;
+
 -- ── 5. Server-side sessions ─────────────────────────────────────────────────
 -- Only an opaque random token is stored client-side; all identity claims
 -- are verified server-side on every app open.  localStorage tampering

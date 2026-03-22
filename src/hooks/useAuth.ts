@@ -5,6 +5,11 @@ import { supabase } from '../lib/supabase';
 // Name, isAdmin, and all identity claims come exclusively from the server.
 export const SESSION_TOKEN_KEY = 'camp_support_token';
 
+// Max time to wait for verify_session before unblocking the UI.
+// On very slow networks the app becomes usable after this, with isAdmin: false
+// as the safe default until the server confirms admin status.
+const RESTORE_TIMEOUT_MS = 5000;
+
 interface AuthState {
   isAuthenticated: boolean;
   staffName: string | null;
@@ -36,7 +41,14 @@ export function useAuth() {
   /**
    * On every app open, verify the stored token against the server.
    * The server returns name + is_admin — no client-supplied claims are trusted.
-   * If the token is missing, expired, or invalid, the user must log in again.
+   *
+   * NETWORK FAILURE POLICY (critical for camp / sketchy networks):
+   *   - Token not found / expired on server  → clear storage, force re-login
+   *   - Network error (offline / timeout)    → keep token, stay authenticated
+   *     with isAdmin: false as safe default. Will re-verify next time online.
+   *
+   * This means staff can still USE the app offline after initial login,
+   * but admin features are locked until the next successful verify_session.
    */
   useEffect(() => {
     const token = loadToken();
@@ -46,40 +58,56 @@ export function useAuth() {
     }
 
     let cancelled = false;
+
+    // Safety net: unblock UI after RESTORE_TIMEOUT_MS even if server is slow.
+    // User stays authenticated (token preserved) with isAdmin: false.
+    const timeout = setTimeout(() => {
+      if (!cancelled) setRestoring(false);
+    }, RESTORE_TIMEOUT_MS);
+
     (async () => {
       try {
-        const { data } = await supabase.rpc('verify_session', { p_token: token });
+        const { data, error: rpcError } = await supabase.rpc('verify_session', { p_token: token });
         if (cancelled) return;
+
         const row = Array.isArray(data) ? data[0] ?? null : data ?? null;
-        if (row?.name) {
+
+        if (rpcError || !row?.name) {
+          // Token is invalid or expired server-side — must log in again.
+          // Only clear on a definitive server rejection, NOT on network errors.
+          if (!rpcError) localStorage.removeItem(SESSION_TOKEN_KEY);
+        } else {
+          // Token valid — restore full session with authoritative server values.
           setAuth({
             isAuthenticated: true,
             staffName: row.name,
             staffPin: null,
             isAdmin: row.is_admin === true,
           });
-        } else {
-          // Token expired or revoked server-side
-          localStorage.removeItem(SESSION_TOKEN_KEY);
         }
       } catch {
-        // Network error — clear local state; user must log in when online
-        localStorage.removeItem(SESSION_TOKEN_KEY);
+        // Network error or timeout — keep the token and stay authenticated.
+        // isAdmin remains false (safe default) until next successful verification.
       } finally {
+        clearTimeout(timeout);
         if (!cancelled) setRestoring(false);
       }
     })();
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      clearTimeout(timeout);
+    };
   }, []);
 
   async function login(pin: string): Promise<boolean> {
     setLoading(true);
     setError(null);
 
-    // Step 1: verify PIN server-side (pgcrypto crypt — PIN never plain-text)
+    // Single round trip: verify PIN + create session atomically.
+    // Halves login latency vs two sequential RPC calls on slow networks.
     const { data, error: dbError } = await supabase
-      .rpc('verify_staff_pin', { input_pin: pin.trim() });
+      .rpc('login_staff', { input_pin: pin.trim() });
 
     if (dbError) {
       setLoading(false);
@@ -87,29 +115,19 @@ export function useAuth() {
       return false;
     }
 
-    const staff = Array.isArray(data) ? data[0] ?? null : data ?? null;
-    if (!staff) {
+    const result = Array.isArray(data) ? data[0] ?? null : data ?? null;
+    if (!result?.token) {
       setLoading(false);
       setError('Invalid PIN. Please try again.');
       return false;
     }
 
-    // Step 2: create a server-side session; receive an opaque token.
-    const { data: token, error: sessionError } = await supabase
-      .rpc('create_session', { p_staff_id: staff.id });
-
-    if (sessionError || !token) {
-      setLoading(false);
-      setError('Session error. Please try again.');
-      return false;
-    }
-
     // Only the opaque token is stored — no name, no role, no flags.
-    localStorage.setItem(SESSION_TOKEN_KEY, token as string);
+    localStorage.setItem(SESSION_TOKEN_KEY, result.token as string);
 
-    const isAdmin = typeof staff.is_admin === 'boolean' ? staff.is_admin : false;
+    const isAdmin = result.is_admin === true;
     setLoading(false);
-    setAuth({ isAuthenticated: true, staffName: staff.name, staffPin: pin, isAdmin });
+    setAuth({ isAuthenticated: true, staffName: result.name, staffPin: pin, isAdmin });
     return true;
   }
 
