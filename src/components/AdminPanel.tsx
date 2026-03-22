@@ -4,6 +4,7 @@ import { supabase, type TicketRow } from '../lib/supabase';
 interface Props {
   tickets: TicketRow[];
   staffName: string;
+  isAdmin: boolean;
 }
 
 const STATUS_ORDER: TicketRow['status'][] = ['open', 'pending', 'resolved'];
@@ -14,12 +15,15 @@ const STATUS_ICONS:    Record<string, string> = { open: '🔴', pending: '🟡',
 const PRIORITY_COLORS: Record<string, string> = { low: '#94a3b8', normal: '#60a5fa', high: '#fbbf24', critical: '#fb7185' };
 const PRIORITY_ICONS:  Record<string, string> = { low: '⬇️', normal: '➡️', high: '⬆️', critical: '🚨' };
 
-export default function AdminPanel({ tickets, staffName }: Props) {
+export default function AdminPanel({ tickets, staffName, isAdmin }: Props) {
   const [updating,     setUpdating]     = useState<number | null>(null);
   const [assigning,    setAssigning]    = useState<number | null>(null);
   const [assignInput,  setAssignInput]  = useState('');
 
+  if (!isAdmin) return <p className="ticket-meta" style={{ color: '#fb7185' }}>⛔ Admin access required.</p>;
+
   async function cycleStatus(ticket: TicketRow) {
+    if (!isAdmin) return;
     const next = STATUS_ORDER[(STATUS_ORDER.indexOf(ticket.status) + 1) % STATUS_ORDER.length];
     setUpdating(ticket.id);
     await supabase.from('tickets').update({ status: next }).eq('id', ticket.id);
@@ -27,6 +31,7 @@ export default function AdminPanel({ tickets, staffName }: Props) {
   }
 
   async function cyclePriority(ticket: TicketRow) {
+    if (!isAdmin) return;
     const next = PRIORITY_ORDER[(PRIORITY_ORDER.indexOf(ticket.priority) + 1) % PRIORITY_ORDER.length];
     setUpdating(ticket.id);
     await supabase.from('tickets').update({ priority: next }).eq('id', ticket.id);
@@ -34,6 +39,7 @@ export default function AdminPanel({ tickets, staffName }: Props) {
   }
 
   async function assignTicket(ticketId: number) {
+    if (!isAdmin) return;
     const name = assignInput.trim() || staffName;
     setUpdating(ticketId);
     await supabase.from('tickets').update({ assigned_to: name }).eq('id', ticketId);

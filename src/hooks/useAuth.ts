@@ -22,12 +22,9 @@ export function useAuth() {
     setLoading(true);
     setError(null);
 
-    // Step 1: verify PIN exists
+    // verify_staff_pin() uses pgcrypto crypt() server-side — PIN never leaves hashed
     const { data, error: dbError } = await supabase
-      .from('staff')
-      .select('name, pin_access')
-      .eq('pin_access', pin.trim())
-      .maybeSingle();
+      .rpc('verify_staff_pin', { input_pin: pin.trim() });
 
     if (dbError) {
       setLoading(false);
@@ -35,25 +32,18 @@ export function useAuth() {
       return false;
     }
 
-    if (!data) {
+    // RPC returns an array; empty = no match
+    const staff = data?.[0] ?? null;
+    if (!staff) {
       setLoading(false);
       setError('Invalid PIN. Please try again.');
       return false;
     }
 
-    // Step 2: try to read is_admin (column may not exist on older installs)
-    let isAdmin = false;
-    const { data: adminData } = await supabase
-      .from('staff')
-      .select('is_admin')
-      .eq('pin_access', pin.trim())
-      .maybeSingle();
-    if (adminData && typeof (adminData as any).is_admin === 'boolean') {
-      isAdmin = (adminData as any).is_admin;
-    }
+    const isAdmin = typeof staff.is_admin === 'boolean' ? staff.is_admin : false;
 
     setLoading(false);
-    setAuth({ isAuthenticated: true, staffName: data.name, staffPin: pin, isAdmin });
+    setAuth({ isAuthenticated: true, staffName: staff.name, staffPin: pin, isAdmin });
     return true;
   }
 

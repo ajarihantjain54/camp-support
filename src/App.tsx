@@ -234,10 +234,10 @@ export default function App() {
               staffName={auth.staffName!}
             />
           )}
-          {staffTab === 'admin' && (
-            <AdminPanel tickets={tickets} staffName={auth.staffName!} />
+          {staffTab === 'admin' && auth.isAdmin && (
+            <AdminPanel tickets={tickets} staffName={auth.staffName!} isAdmin={auth.isAdmin} />
           )}
-          {staffTab === 'team' && <StaffManager />}
+          {staffTab === 'team' && auth.isAdmin && <StaffManager isAdmin={auth.isAdmin} />}
         </div>
       )}
       {/* ── Live Pin Map ────────────────────────────────────────────────── */}
@@ -282,17 +282,17 @@ export default function App() {
         <h3>{dict.galleryTitle}</h3>
         <div className="gallery-scroll">
           <img
-            src="images/photo1.jpg"
+            src={`${import.meta.env.BASE_URL}images/photo1.jpg`}
             alt="Venue Photo 1"
             className="venue-img"
-            onClick={() => setModalSrc('images/photo1.jpg')}
+            onClick={() => setModalSrc(`${import.meta.env.BASE_URL}images/photo1.jpg`)}
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
           />
           <img
-            src="images/photo2.jpg"
+            src={`${import.meta.env.BASE_URL}images/photo2.jpg`}
             alt="Venue Photo 2"
             className="venue-img"
-            onClick={() => setModalSrc('images/photo2.jpg')}
+            onClick={() => setModalSrc(`${import.meta.env.BASE_URL}images/photo2.jpg`)}
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
           />
         </div>
