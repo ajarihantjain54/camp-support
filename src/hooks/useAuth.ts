@@ -22,10 +22,9 @@ export function useAuth() {
     setLoading(true);
     setError(null);
 
-    // Call secure RPC instead of querying the staff table directly
-    const { data, error: dbError } = await supabase.rpc('verify_staff_pin', { 
-      pin: pin.trim() 
-    });
+    // verify_staff_pin() uses pgcrypto crypt() server-side — PIN never sent as plain-text
+    const { data, error: dbError } = await supabase
+      .rpc('verify_staff_pin', { input_pin: pin.trim() });
 
     if (dbError) {
       setLoading(false);
@@ -33,20 +32,17 @@ export function useAuth() {
       return false;
     }
 
-    if (!data) {
+    // RPC returns a table (array); empty = no match
+    const staff = Array.isArray(data) ? data[0] ?? null : data ?? null;
+    if (!staff) {
       setLoading(false);
       setError('Invalid PIN. Please try again.');
       return false;
     }
 
-    // data contains { name, is_admin, contact_number }
+    const isAdmin = typeof staff.is_admin === 'boolean' ? staff.is_admin : false;
     setLoading(false);
-    setAuth({ 
-      isAuthenticated: true, 
-      staffName: data.name, 
-      staffPin: pin, 
-      isAdmin: data.is_admin 
-    });
+    setAuth({ isAuthenticated: true, staffName: staff.name, staffPin: pin, isAdmin });
     return true;
   }
 

@@ -4,6 +4,7 @@ import { type TicketRow } from '../lib/supabase';
 interface Props {
   tickets: TicketRow[];
   staffName: string;
+  isAdmin: boolean;
   updateTicketOptimistic: (id: number, updates: Partial<TicketRow>) => Promise<boolean>;
 }
 
@@ -15,10 +16,12 @@ const STATUS_ICONS:    Record<string, string> = { open: '🔴', pending: '🟡',
 const PRIORITY_COLORS: Record<string, string> = { low: '#94a3b8', normal: '#60a5fa', high: '#fbbf24', critical: '#fb7185' };
 const PRIORITY_ICONS:  Record<string, string> = { low: '⬇️', normal: '➡️', high: '⬆️', critical: '🚨' };
 
-export default function AdminPanel({ tickets, staffName, updateTicketOptimistic }: Props) {
+export default function AdminPanel({ tickets, staffName, isAdmin, updateTicketOptimistic }: Props) {
   const [updating,     setUpdating]     = useState<number | null>(null);
   const [assigning,    setAssigning]    = useState<number | null>(null);
   const [assignInput,  setAssignInput]  = useState('');
+
+  if (!isAdmin) return <p className="ticket-meta" style={{ color: '#fb7185' }}>⛔ Admin access required.</p>;
 
   async function cycleStatus(ticket: TicketRow) {
     const next = STATUS_ORDER[(STATUS_ORDER.indexOf(ticket.status) + 1) % STATUS_ORDER.length];

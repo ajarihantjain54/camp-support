@@ -98,31 +98,16 @@ create policy "tickets_update_creator" on public.tickets for update using (true)
 
 
 -- ── 4. Secure PIN Verification (RPC) ──────────────────────────────────────────
-create or replace function public.verify_staff_pin(pin text)
-returns json
-language plpgsql
-security definer
+-- DROP first so return type can always be changed on re-runs
+drop function if exists public.verify_staff_pin(text);
+create or replace function public.verify_staff_pin(input_pin text)
+returns table(id bigint, name text, is_admin boolean, contact_number text)
+language sql security definer stable
 as $$
-declare
-  staff_record record;
-begin
-  select name, is_admin, contact_number
-  into staff_record
+  select id, name, is_admin, contact_number
   from public.staff
-  where pin_access = crypt(pin, pin_access) 
+  where pin_access = crypt(input_pin, pin_access)
   limit 1;
-
-  if staff_record is null then
-    perform pg_sleep(1); 
-    return null;
-  end if;
-
-  return json_build_object(
-    'name', staff_record.name,
-    'is_admin', staff_record.is_admin,
-    'contact_number', staff_record.contact_number
-  );
-end;
 $$;
 
 -- ── 5. Secure PIN Reset (RPC) ─────────────────────────────────────────────────

@@ -236,14 +236,15 @@ export default function App() {
               updateTicketOptimistic={updateTicketOptimistic}
             />
           )}
-          {staffTab === 'admin' && (
-            <AdminPanel 
-              tickets={tickets} 
-              staffName={auth.staffName!} 
+          {staffTab === 'admin' && auth.isAdmin && (
+            <AdminPanel
+              tickets={tickets}
+              staffName={auth.staffName!}
+              isAdmin={auth.isAdmin}
               updateTicketOptimistic={updateTicketOptimistic}
             />
           )}
-          {staffTab === 'team' && <StaffManager />}
+          {staffTab === 'team' && auth.isAdmin && <StaffManager isAdmin={auth.isAdmin} />}
         </div>
       )}
       {/* ── Live Pin Map ────────────────────────────────────────────────── */}

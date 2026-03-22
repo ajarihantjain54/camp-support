@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { supabase, type StaffRow } from '../lib/supabase';
 
-export default function StaffManager() {
+interface StaffManagerProps { isAdmin: boolean; }
+export default function StaffManager({ isAdmin }: StaffManagerProps) {
+  if (!isAdmin) return null;
   const [staff,      setStaff]      = useState<StaffRow[]>([]);
   const [loading,    setLoading]    = useState(true);
   const [showForm,   setShowForm]   = useState(false);
